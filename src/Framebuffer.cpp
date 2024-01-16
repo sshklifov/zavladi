@@ -1,8 +1,8 @@
 #include "Framebuffer.hpp"
 
 Framebuffer::Framebuffer(int width, int height) : width(width), height(height) {
-    int bufsiz = width * height * 3;
-    fb = new float[bufsiz];
+    int pixels = width * height;
+    fb = new Color3f[pixels];
 }
 
 Framebuffer::~Framebuffer() {
@@ -18,16 +18,21 @@ int Framebuffer::getHeight() const {
 }
 
 const float* Framebuffer::getData() const {
-    return fb;
+    return reinterpret_cast<float*>(fb);
 }
 
-void Framebuffer::fillRed() {
+void Framebuffer::set(int x, int y, Color3f col) {
+    fb[x * height + y] = col;
+}
+
+void Framebuffer::clear() {
     for (int i = 0; i < width; ++i) {
         for (int j = 0; j < height; ++j) {
-            int pos = (i * height + j) * 3;
-            fb[pos] = 1.f;
-            fb[pos + 1] = 0.f;
-            fb[pos + 2] = 0.f;
+            set(i, j, Color3f(0.f, 0.f, 0.f));
         }
     }
+}
+
+void Framebuffer::drawCoin(int x, int y) {
+    const int rad = 20;
 }

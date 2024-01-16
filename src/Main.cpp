@@ -13,7 +13,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         Framebuffer* fb = getWindowFramebuffer(window);
-        fb->fillRed();
+        fb->clear();
         displayWindowFramebuffer(window);
     }
 
