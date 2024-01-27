@@ -1,38 +1,34 @@
 #include "Framebuffer.hpp"
 
-Framebuffer::Framebuffer(int width, int height) : width(width), height(height) {
-    int pixels = width * height;
-    fb = new Color3f[pixels];
-}
-
-Framebuffer::~Framebuffer() {
-    delete[] fb;
-}
+Framebuffer::Framebuffer(int width, int height) : fb(width, height) {}
 
 int Framebuffer::getWidth() const {
-    return width;
+    return fb.width;
 }
 
 int Framebuffer::getHeight() const {
-    return height;
+    return fb.height;
 }
 
 const float* Framebuffer::getData() const {
-    return reinterpret_cast<float*>(fb);
-}
-
-void Framebuffer::set(int x, int y, Color3f col) {
-    fb[x * height + y] = col;
+    return reinterpret_cast<float*>(fb.data);
 }
 
 void Framebuffer::clear() {
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
-            set(i, j, Color3f(0.f, 0.f, 0.f));
+    for (int x = 0; x < fb.width; ++x) {
+        for (int y = 0; y < fb.height; ++y) {
+            fb.draw(x, y, Color3f(0.f, 0.f, 0.f));
         }
     }
 }
 
-void Framebuffer::drawCoin(int x, int y) {
-    const int rad = 20;
+void Framebuffer::draw(const DrawableBox& element) {
+    for (int x = element.xmin(); x <= element.xmax(); ++x) {
+        for (int y = element.ymin(); y <= element.ymax(); ++y) {
+            Point p(x, y);
+            if (element.shouldDraw(p)) {
+                fb.draw(x, y, element.getColor(p));
+            }
+        }
+    }
 }
