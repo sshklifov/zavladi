@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-enum class BoxType { box_coin, box_wall, box_pacman, box_ghost };
+enum class BoxType { box_coin = 0, box_wall, box_pacman, box_ghost };
 struct Point {
   Point() {}
   Point(int x, int y) : x(x), y(y) {}
@@ -56,7 +56,7 @@ struct Box {
   Point pmin;
   Point pmax;
 
-  virtual BoxType type() const = 0;
+  virtual BoxType getType() const = 0;
 };
 
 struct DrawableBox : public Box {
@@ -67,7 +67,7 @@ struct DrawableBox : public Box {
   virtual bool shouldDraw(const Point &p) const = 0;
   virtual Color3f getColor(const Point &p) const = 0;
 
-  virtual BoxType type() const override = 0;
+  virtual BoxType getType() const override = 0;
 };
 
 struct Coin : public DrawableBox {
@@ -84,7 +84,7 @@ struct Coin : public DrawableBox {
     return Color3f(0.965f, 0.733f, 0.686f);
   }
 
-  BoxType type() const override { return BoxType::box_coin; }
+  BoxType getType() const override { return BoxType::box_coin; }
 
 private:
   Point pos;
@@ -99,7 +99,7 @@ struct Wall : public DrawableBox {
     return Color3f(0.122f, 0.153f, 0.824f);
   }
 
-  BoxType type() const override { return BoxType::box_wall; }
+  BoxType getType() const override { return BoxType::box_wall; }
 };
 
 enum Direction { dir_left, dir_right, dir_up, dir_down };
@@ -170,7 +170,7 @@ struct Pacman : public DrawableBox {
     dir = dir_up;
   }
 
-  BoxType type() const override { return BoxType::box_pacman; }
+  BoxType getType() const override { return BoxType::box_pacman; }
 
 private:
   Point center;
@@ -206,7 +206,7 @@ struct Ghost : public DrawableBox {
     return alpha > 0.05f;
   }
 
-BoxType type() const override { return BoxType::box_ghost; }
+  BoxType getType() const override { return BoxType::box_ghost; }
 
 private:
   Color3f color;

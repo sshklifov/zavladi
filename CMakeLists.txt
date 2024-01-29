@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 project(zavladi)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 add_compile_definitions(GHOST_BITMAP_WIDTH=107)
 add_compile_definitions(GHOST_BITMAP_HEIGHT=128)
