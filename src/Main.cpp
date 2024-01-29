@@ -40,7 +40,16 @@ int main() {
     glfwPollEvents();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, true);
+    } else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      pacman.moveLeft();
+    } else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      pacman.moveRight();
+    } else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+      pacman.moveUp();
+    } else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+      pacman.moveDown();
     }
+
     Framebuffer *fb = getWindowFramebuffer(window);
     fb->clear();
     for (const Coin &c : coins) {
