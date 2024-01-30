@@ -14,12 +14,72 @@
 #include <memory>
 #include <vector>
 
+
+std::vector<std::vector<Point>> allPoints;
+int height;
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  if (allPoints.empty()) {
+    allPoints.push_back(std::vector<Point>{});
+  }
+  std::vector<Point>& currPoints = allPoints.back();
+
+  double xpos, ypos;
+  glfwGetCursorPos(window, &xpos, &ypos);
+  // TODO remove multiply by 2 hacks
+  int x = static_cast<int>(xpos * 2);
+  int y = height - static_cast<int>(ypos * 2);
+  printf("Coordinates: %d %d\n", x, y);
+
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    if (!currPoints.empty()) {
+      int dx = abs(currPoints.back().x - x);
+      int dy = abs(currPoints.back().y - y);
+      if (dx < dy) {
+        currPoints.emplace_back(currPoints.back().x, y);
+      } else {
+        currPoints.emplace_back(x, currPoints.back().y);
+      }
+    } else {
+      currPoints.emplace_back(x, y);
+    }
+  }
+  if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+    if (currPoints.size() >= 4) {
+      int dx = abs(currPoints[currPoints.size()-1].x - currPoints[currPoints.size()-2].x);
+      int dy = abs(currPoints[currPoints.size()-1].y - currPoints[currPoints.size()-2].y);
+      if (dx == 0) {
+        currPoints[currPoints.size()-1].y = currPoints[0].y;
+        currPoints.push_back(currPoints.front());
+        allPoints.push_back({});
+      } else if (dy == 0) {
+        currPoints[currPoints.size()-1].x = currPoints[0].x;
+        currPoints.push_back(currPoints.front());
+        allPoints.push_back(std::vector<Point>{});
+      }
+    }
+  }
+}
+
+void exportCode() {
+  printf("std::vector<Wall> walls\n");
+  for (int i = 0; i < (int)allPoints.size(); ++i) {
+    for (int j = 0; j < (int)allPoints[i].size(); ++j) {
+      Point prev = allPoints[i][j-1];
+      Point curr = allPoints[i][j];
+      printf("walls.emplace_back(Point(%d, %d), Point(%d, %d))\n",
+        prev.x, prev.y, curr.x, curr.y);
+    }
+  }
+}
+
 class GameField {
 public:
   GameField(int width, int height)
       : width(width), height(height), pacman(Point(400, 300)) {
     // TODO: starting points in config
+    ::height = height;
     window = createWindow(width, height);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
     objects.push_back(std::make_unique<Ghost>(
         Point(1400, 400), Color3f(1.f, 0.341f, 0.016f))); // red
@@ -33,50 +93,27 @@ public:
       int y = rand() % height;
       objects.push_back(std::make_unique<Coin>(Point(x, y)));
     }
-
-    wallLocations = {
-        Point(50, 100),  Point(1800, 100), Point(1800, 900), Point(200, 900),
-        Point(200, 600), Point(50, 600),   Point(50, 100),
-    };
-    for (size_t i = 0; i < wallLocations.size() - 1; ++i) {
-      Point wallStart = wallLocations[i];
-      Point wallEnd = wallLocations[i + 1];
-      walls.emplace_back(wallStart, wallEnd);
-      // objects.push_back(std::make_unique<Wall>(wallStart, wallEnd));
-    }
   }
 
   void play() {
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
       if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        exportCode();
         glfwSetWindowShouldClose(window, true);
-      } else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        if (!checkWallCollisions()) {
-          pacman.moveLeft();
-        }
-      } else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        if (!checkWallCollisions()) {
-          pacman.moveRight();
-        }
-      } else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        if (!checkWallCollisions()) {
-          pacman.moveUp();
-        }
-      } else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!checkWallCollisions()) {
-          pacman.moveDown();
-        }
       }
 
       Framebuffer *fb = getWindowFramebuffer(window);
       fb->clear();
-      checkPacmanCollisions();
-      for (const auto &obj : objects) {
-        fb->draw(*obj);
+      for (int i = 0; i < (int)allPoints.size(); ++i) {
+        for (int j = 0; j < (int)allPoints[i].size(); ++j) {
+          fb->draw(Coin(allPoints[i][j]));
+        }
       }
-      for (const auto &wall : walls) {
-        fb->draw(wall);
+      for (int i = 0; i < (int)allPoints.size(); ++i) {
+        for (int j = 1; j < (int)allPoints[i].size(); ++j) {
+          fb->draw(Wall(allPoints[i][j-1], allPoints[i][j]));
+        }
       }
       fb->draw(pacman);
       displayWindowFramebuffer(window);
@@ -84,43 +121,10 @@ public:
   }
 
 private:
-  void checkPacmanCollisions() {
-    for (auto it = objects.begin(); it != objects.end();) {
-      if (pacman.intersect(**it)) {
-        if ((*it)->getType() == BoxType::box_coin) {
-          it = objects.erase(it);
-          std::cout << "Coin collected!\n";
-        } else if ((*it)->getType() == BoxType::box_ghost) {
-          std::cout << "Pacman died!\n";
-          // or exit(0)
-          it = objects.erase(it);
-          glfwSetWindowShouldClose(window, true);
-        } else {
-          ++it;
-        }
-      } else {
-        ++it;
-      }
-    }
-  }
-
-  bool checkWallCollisions() {
-    for (const auto &wall : walls) {
-      if (pacman.intersect(wall)) {
-        std::cout << "Pacman hit a wall!\n";
-        return true;
-      }
-    }
-    return false;
-  }
-
   int width;
   int height;
   GLFWwindow *window;
 
   Pacman pacman;
-
-  std::vector<Point> wallLocations;
-  std::vector<Wall> walls;
   std::list<std::unique_ptr<DrawableBox>> objects;
 };
