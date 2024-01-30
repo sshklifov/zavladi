@@ -25,9 +25,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 
   double xpos, ypos;
   glfwGetCursorPos(window, &xpos, &ypos);
-  // TODO remove multiply by 2 hacks
-  int x = static_cast<int>(xpos * 2);
-  int y = height - static_cast<int>(ypos * 2);
+  int x = static_cast<int>(xpos);
+  int y = height - static_cast<int>(ypos);
   printf("Coordinates: %d %d\n", x, y);
 
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {

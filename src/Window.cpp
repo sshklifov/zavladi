@@ -222,7 +222,7 @@ GLFWwindow* createWindow(int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(width/2, height/2, "Vladi malka pishka", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "Vladi malka pishka", NULL, NULL);
     if (!window) {
         logError("Cannot create window (w=%d h=%d)\n", width, height);
         glfwTerminate();
